@@ -35,12 +35,21 @@ local function term(cmd)
   vim.cmd.startinsert()
 end
 
+-- The commands below run through 'shell', so arguments need shell quoting,
+-- not Vim command-line escaping. shellescape() picks the right quoting for
+-- the active shell: single quotes on macOS/Linux and PowerShell, double
+-- quotes on Windows cmd.exe (where single quotes are literal and "^" is the
+-- escape character).
+local function pkg_dir()
+  return vim.fn.shellescape(vim.fn.expand "%:p:h")
+end
+
 map("n", "<leader>gp", function()
   term "go test ./..."
 end, "Go test package tree")
 
 map("n", "<leader>gf", function()
-  term("go test " .. vim.fn.fnameescape(vim.fn.expand "%:p:h"))
+  term("go test " .. pkg_dir())
 end, "Go test current package")
 
 map("n", "<leader>gn", function()
@@ -54,11 +63,11 @@ map("n", "<leader>gn", function()
     vim.notify("Cursor is not inside a Test function", vim.log.levels.WARN)
     return
   end
-  term(("go test %s -run '^%s$' -v"):format(vim.fn.fnameescape(vim.fn.expand "%:p:h"), name))
+  term(("go test %s -run %s -v"):format(pkg_dir(), vim.fn.shellescape("^" .. name .. "$")))
 end, "Go test nearest")
 
 map("n", "<leader>gr", function()
-  term("go run " .. vim.fn.fnameescape(vim.fn.expand "%:p:h"))
+  term("go run " .. pkg_dir())
 end, "Go run current package")
 
 -- gopher.nvim

@@ -83,8 +83,12 @@ return {
     ft = "go",
     dependencies = { "mfussenegger/nvim-dap" },
     opts = function()
+      -- nvim-dap spawns the adapter with libuv directly, which on Windows
+      -- only resolves .com/.exe. Mason's bin dir holds .cmd shims there, so
+      -- the extension has to be explicit.
+      local ext = vim.fn.has "win32" == 1 and ".cmd" or ""
       return {
-        delve = { path = vim.fn.stdpath "data" .. "/mason/bin/dlv" },
+        delve = { path = vim.fn.stdpath "data" .. "/mason/bin/dlv" .. ext },
       }
     end,
   },

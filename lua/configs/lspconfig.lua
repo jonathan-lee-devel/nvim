@@ -5,7 +5,9 @@ require("nvchad.configs.lspconfig").defaults()
 -- `cmd`s (ngserver, vtsls, vscode-*-language-server, ...) resolve.
 local mason_bin = vim.fn.stdpath "data" .. "/mason/bin"
 if not vim.env.PATH:find(mason_bin, 1, true) then
-  vim.env.PATH = mason_bin .. ":" .. vim.env.PATH
+  -- Windows separates PATH entries with ";" instead of ":".
+  local sep = vim.fn.has "win32" == 1 and ";" or ":"
+  vim.env.PATH = mason_bin .. sep .. vim.env.PATH
 end
 
 -- ---------------------------------------------------------------------------
