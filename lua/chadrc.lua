@@ -17,6 +17,11 @@ M.base46 = {
 	-- },
 }
 
+M.term = {
+	-- fraction of the editor height; NvChad's default is 0.3
+	sizes = { sp = 0.375 },
+}
+
 -- M.nvdash = { load_on_startup = true }
 -- M.ui = {
 --       tabufline = {
