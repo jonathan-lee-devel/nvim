@@ -22,7 +22,7 @@ an elevated PowerShell:
 ```powershell
 winget install Neovim.Neovim Git.Git BurntSushi.ripgrep.MSVC
 winget install OpenJS.NodeJS.LTS GoLang.Go Microsoft.OpenJDK.21
-winget install zig.zig tree-sitter.tree-sitter
+winget install zig.zig tree-sitter.tree-sitter-cli
 ```
 
 | Tool | Needed by |
