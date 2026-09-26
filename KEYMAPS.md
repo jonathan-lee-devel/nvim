@@ -7,7 +7,8 @@ Sources: `lua/mappings.lua`, `lua/configs/lspconfig.lua`, `after/ftplugin/*.lua`
 and NvChad's defaults (`nvchad/mappings.lua`, `nvchad/configs/lspconfig.lua`).
 
 Press `<leader>ch` inside Neovim for the interactive NvChad cheatsheet, or
-`<leader>wK` to see every keymap via which-key.
+`<leader>wK` to see every keymap via which-key. Using this config on Windows?
+See [Windows notes](#windows-notes) at the end.
 
 ---
 
@@ -233,3 +234,50 @@ start fully unfolded. Standard Vim fold keys apply:
 | `za` | Toggle fold under cursor |
 | `zc` / `zo` | Close / open fold |
 | `zM` / `zR` | Close / open all folds |
+
+## Windows notes
+
+Every keymap above works on Windows. The differences are in what a few of
+them run or in what the terminal emulator does before Neovim sees the key.
+
+**Modifier names.** `<A-x>` is the Alt key. `<C-x>` is Ctrl as usual.
+
+**Windows Terminal intercepts `Ctrl+V`.** Its default keybindings map
+`ctrl+v` to paste, so `<C-v>` never reaches Neovim. That breaks visual
+block mode and the "open in vertical split" key in Telescope and nvim-tree.
+Unbind it in Windows Terminal settings (`settings.json` under `"actions"`):
+
+```json
+{ "command": "unbound", "keys": "ctrl+v" }
+```
+
+`Ctrl+C` is only intercepted while text is selected in the terminal, so
+`<C-c>` (copy whole file) works in normal use. Alt combinations
+(`<A-h>`, `<A-v>`, `<A-i>`) pass through unchanged.
+
+**Terminals open `cmd.exe`.** `<leader>h`, `<leader>v` and the `<A-...>`
+toggles run `'shell'`, which defaults to `cmd.exe` on Windows. `<C-x>`
+still leaves terminal mode. To use PowerShell instead, add to
+`lua/options.lua`:
+
+```lua
+vim.o.shell = "pwsh"
+```
+
+**Go test and run keys** (`<leader>gr`, `<leader>gf`, `<leader>gn`,
+`<leader>gp`) build a shell command and run it in a split terminal. The
+config quotes the package path and the `-run` regex with `shellescape()`,
+so they work under both `cmd.exe` and PowerShell, including paths that
+contain spaces. On Windows the command runs in `cmd.exe` unless `'shell'`
+is changed as above.
+
+**Debugging** (`<leader>gd`, `<leader>gD`, `<leader>d…`) launches delve
+through mason's `dlv.cmd` shim. nvim-dap-go runs delve attached on Windows
+(it crashes when detached), which the plugin handles by default. Nothing
+changes in how the keys behave.
+
+**Clipboard.** `<C-c>` and `"+y` use the win32yank provider that ships
+with the Neovim Windows build, so no extra clipboard tool is needed.
+
+**Live grep** (`<leader>fw`) needs ripgrep on PATH, which the README's
+winget step installs.
