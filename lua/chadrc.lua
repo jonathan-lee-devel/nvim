@@ -6,7 +6,7 @@
 local M = {}
 
 M.base46 = {
-	theme = "chadracula",
+	theme = "bearded-arc",
 
 	-- extra highlight groups: LSP semantic tokens (jdtls) and rainbow brackets
 	integrations = { "semantic_tokens", "rainbowdelimiters" },
