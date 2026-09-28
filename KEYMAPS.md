@@ -131,7 +131,7 @@ Neovim 0.11 built-in LSP maps (not defined in this config, but active):
 | Key | Mode | Action |
 |-----|------|--------|
 | `K` | n | Hover documentation |
-| `grr` | n | References |
+| `grr` | n | Find references / usages of the symbol under the cursor (quickfix list) |
 | `gri` | n | Go to implementation |
 | `grn` | n | Rename |
 | `gra` | n, x | Code action |
