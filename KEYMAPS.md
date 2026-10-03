@@ -3,8 +3,8 @@
 Generated from this config (NvChad v2.5 base + custom mappings).
 `<leader>` is **Space**. `<A-x>` means Alt/Option + x, `<C-x>` means Ctrl + x.
 
-Sources: `lua/mappings.lua`, `lua/configs/lspconfig.lua`, `after/ftplugin/*.lua`,
-and NvChad's defaults (`nvchad/mappings.lua`, `nvchad/configs/lspconfig.lua`).
+Sources: `lua/mappings.lua`, `lua/configs/lspconfig.lua`, `lua/plugins/init.lua`
+(debugger keys), `after/ftplugin/*.lua`, and NvChad's defaults (`nvchad/mappings.lua`, `nvchad/configs/lspconfig.lua`).
 
 Press `<leader>ch` inside Neovim for the interactive NvChad cheatsheet, or
 `<leader>wK` to see every keymap via which-key. Using this config on Windows?
@@ -134,7 +134,7 @@ Neovim 0.11 built-in LSP maps (not defined in this config, but active):
 | `grr` | n | Find references / usages of the symbol under the cursor (quickfix list) |
 | `gri` | n | Go to implementation |
 | `grn` | n | Rename |
-| `gra` | n, x | Code action |
+| `gra` | n, x | Code action (Rust buffers use rust-analyzer's grouped version, see below) |
 | `gO` | n | Document symbols |
 | `[d` / `]d` | n | Previous / next diagnostic |
 | `<C-s>` | i | Signature help |
@@ -208,14 +208,83 @@ Code generation (gopher.nvim):
 | `<leader>ge` | n | Insert `if err != nil` block |
 | `<leader>gi` | n | Implement an interface (`:GoImpl recv iface`) |
 
-## Debugging (DAP)
+## Rust
 
-Defined in Go buffers. Delve is launched through nvim-dap-go.
+Buffer-local in `.rs` files (`after/ftplugin/rust.lua`) and when
+rust-analyzer is attached. Most keys call rustaceanvim's `:RustLsp` command.
+Clippy runs on save and reports as diagnostics; rustfmt formats on save.
+
+Running, testing and debugging go through rust-analyzer's runnables, so the
+right package, target and test filter are picked for you:
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `<leader>gd` | n | Debug the nearest test |
-| `<leader>gD` | n | Debug the last test again |
+| `<leader>rr` | n | Run the target under the cursor (`main`, a test, a doctest, ...) |
+| `<leader>rR` | n | Pick a runnable from the whole workspace |
+| `<leader>rt` | n | Pick a test target |
+| `<leader>rT` | n | Rerun the last test target |
+| `<leader>rd` | n | Debug the target under the cursor (codelldb) |
+| `<leader>rD` | n | Pick a debuggable |
+| `<leader>rl` | n | Run the code lens under the cursor (Run / Debug / implementations) |
+| `<leader>rb` | n | `cargo build` in a split terminal |
+
+Diagnostics and code:
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `<leader>re` | n | Show the full rustc diagnostic, as `cargo build` prints it |
+| `<leader>rE` | n | Explain the error code under the cursor (`rustc --explain`) |
+| `gra` | n, x | Code action with rust-analyzer's grouping (`Import ▶` submenus) |
+| `<leader>rh` | n | Hover with actions (press again to enter the window) |
+| `<leader>rm` | n | Expand the macro under the cursor recursively |
+| `<leader>rj` | n, x | Join lines, fixing up commas, braces and whitespace |
+| `<leader>rs` | n, x | Structural search and replace (opens the command line for the pattern) |
+| `<leader>ih` | n | Toggle inlay hints (lifetimes, closure return types, binding modes, ...) |
+
+Navigation:
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `<leader>rp` | n | Go to the parent module |
+| `<leader>rc` | n | Open the crate's `Cargo.toml` |
+| `<leader>ro` | n | Open docs.rs for the symbol under the cursor |
+
+## Cargo.toml (crates.nvim)
+
+Buffer-local in `Cargo.toml` (`after/ftplugin/toml.lua`). The newest version
+of every dependency is shown as virtual text; `K` hovers a crate and `gra`
+offers update / upgrade / open actions. "Update" moves to the newest version
+that still matches the requirement, "upgrade" to the newest version overall.
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `<leader>cv` | n | Versions popup |
+| `<leader>cf` | n | Features popup |
+| `<leader>cd` | n | Dependencies popup |
+| `<leader>cu` | n, x | Update the crate under the cursor / the selected crates |
+| `<leader>ca` | n | Update all crates |
+| `<leader>cU` | n, x | Upgrade the crate under the cursor / the selected crates |
+| `<leader>cA` | n | Upgrade all crates |
+| `<leader>cx` | n | Expand a plain `crate = "1"` entry into an inline table |
+| `<leader>cX` | n | Extract the crate into its own `[dependencies.crate]` table |
+| `<leader>ct` | n | Toggle the version hints |
+| `<leader>cr` | n | Reload crate data |
+| `<leader>cH` | n | Open the crate's homepage |
+| `<leader>cR` | n | Open the crate's repository |
+| `<leader>cD` | n | Open the crate on docs.rs |
+| `<leader>cC` | n | Open the crate on crates.io |
+
+## Debugging (DAP)
+
+The session keys are global (`lua/plugins/init.lua`). Sessions start from
+the language keys: Go through delve, Rust through codelldb.
+
+| Key | Mode | Action |
+|-----|------|--------|
+| `<leader>gd` | n | Go: debug the nearest test |
+| `<leader>gD` | n | Go: debug the last test again |
+| `<leader>rd` | n | Rust: debug the target under the cursor |
+| `<leader>rD` | n | Rust: pick a debuggable |
 | `<leader>db` | n | Toggle breakpoint |
 | `<leader>dc` | n | Continue / start |
 | `<leader>dn` | n | Step over |
@@ -226,8 +295,8 @@ Defined in Go buffers. Delve is launched through nvim-dap-go.
 
 ## Folding
 
-Go, Java, TypeScript and Angular template buffers use treesitter folding and
-start fully unfolded. Standard Vim fold keys apply:
+Go, Rust, Java, TypeScript and Angular template buffers use treesitter folding
+and start fully unfolded. Standard Vim fold keys apply:
 
 | Key | Action |
 |-----|--------|
@@ -269,12 +338,15 @@ vim.o.shell = "pwsh"
 config quotes the package path and the `-run` regex with `shellescape()`,
 so they work under both `cmd.exe` and PowerShell, including paths that
 contain spaces. On Windows the command runs in `cmd.exe` unless `'shell'`
-is changed as above.
+is changed as above. The Rust run keys (`<leader>rr`, `<leader>rt`,
+`<leader>rb`, ...) open their terminal the same way; rustaceanvim builds the
+cargo command itself.
 
 **Debugging** (`<leader>gd`, `<leader>gD`, `<leader>d…`) launches delve
 through mason's `dlv.cmd` shim. nvim-dap-go runs delve attached on Windows
-(it crashes when detached), which the plugin handles by default. Nothing
-changes in how the keys behave.
+(it crashes when detached), which the plugin handles by default. Rust
+(`<leader>rd`, `<leader>rD`) launches `codelldb.exe` from the mason package
+directly. Nothing changes in how the keys behave.
 
 **Clipboard.** `<C-c>` and `"+y` use the win32yank provider that ships
 with the Neovim Windows build, so no extra clipboard tool is needed.

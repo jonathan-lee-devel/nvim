@@ -51,6 +51,8 @@ return {
         -- Go. `gomod`/`gosum`/`gowork` highlight the module files, `gotmpl`
         -- covers text/template and html/template files.
         "go", "gomod", "gosum", "gowork", "gotmpl",
+        -- Rust. `toml` covers Cargo.toml, Cargo.lock and rustfmt.toml.
+        "rust", "toml",
       },
     },
   },
@@ -91,6 +93,56 @@ return {
         delve = { path = vim.fn.stdpath "data" .. "/mason/bin/dlv" .. ext },
       }
     end,
+  },
+
+  -- Generic debugger keys, shared by every language with a DAP adapter (delve
+  -- for Go, codelldb for Rust). The language-specific launchers live in the
+  -- ftplugins (<leader>gd / <leader>rd).
+  {
+    "mfussenegger/nvim-dap",
+    keys = {
+      { "<leader>db", "<cmd>DapToggleBreakpoint<CR>", desc = "DAP toggle breakpoint" },
+      { "<leader>dc", "<cmd>DapContinue<CR>", desc = "DAP continue / start" },
+      { "<leader>dn", "<cmd>DapStepOver<CR>", desc = "DAP step over" },
+      { "<leader>di", "<cmd>DapStepInto<CR>", desc = "DAP step into" },
+      { "<leader>do", "<cmd>DapStepOut<CR>", desc = "DAP step out" },
+      { "<leader>dr", "<cmd>DapToggleRepl<CR>", desc = "DAP toggle REPL" },
+      { "<leader>dq", "<cmd>DapTerminate<CR>", desc = "DAP terminate" },
+    },
+  },
+
+  -- Rust: rustaceanvim starts and configures rust-analyzer itself (lspconfig's
+  -- rust_analyzer must stay disabled) and adds the :RustLsp commands used in
+  -- after/ftplugin/rust.lua: runnables, testables, debuggables (codelldb from
+  -- mason), macro expansion, rendered diagnostics, grouped code actions, ...
+  -- Settings live in configs/rustaceanvim.lua.
+  -- Install with: rustup component add rust-analyzer rust-src
+  --           and :MasonInstall codelldb
+  {
+    "mrcjkb/rustaceanvim",
+    version = "^9", -- v9 needs Neovim >= 0.12
+    ft = { "rust" },
+    -- nvim-lspconfig first, so NvChad's vim.lsp.config("*") defaults and the
+    -- rust-analyzer entry in configs/lspconfig.lua exist when the client starts.
+    dependencies = { "neovim/nvim-lspconfig", "mfussenegger/nvim-dap" },
+    init = function()
+      -- Must be set before the plugin loads; a function defers the require.
+      vim.g.rustaceanvim = function()
+        return require "configs.rustaceanvim"
+      end
+    end,
+  },
+
+  -- Cargo.toml: newest crate versions as virtual text, completion of crate
+  -- names / versions / features, K hover and gra update/upgrade actions, all
+  -- through an in-process language server. Keymaps in after/ftplugin/toml.lua.
+  {
+    "saecki/crates.nvim",
+    tag = "stable",
+    event = { "BufRead Cargo.toml" },
+    opts = {
+      lsp = { enabled = true, actions = true, completion = true, hover = true },
+    },
   },
 
   -- JSON schemas for angular.json, tsconfig.json, package.json, etc. (used by jsonls)

@@ -12,6 +12,8 @@ local formatters_by_ft = {
   java = { "google-java-format" },
   -- goimports fixes the import block, gofumpt applies the stricter gofmt.
   go = { "goimports", "gofumpt" },
+  -- rustfmt from the rustup toolchain (on $PATH); rust-analyzer is the fallback.
+  rust = { "rustfmt" },
 }
 for _, ft in ipairs(prettier_fts) do
   formatters_by_ft[ft] = { "prettier" }
@@ -24,6 +26,10 @@ local options = {
     -- Install with :MasonInstall goimports gofumpt
     goimports = { command = mason_bin .. "goimports" },
     gofumpt = { command = mason_bin .. "gofumpt" },
+
+    -- The edition comes from the nearest Cargo.toml; this default only applies
+    -- to files outside a cargo project.
+    rustfmt = { options = { default_edition = "2024" } },
 
     -- NvChad sets mason's PATH option to "skip", so point at the binary directly.
     -- Install with :MasonInstall google-java-format
@@ -51,13 +57,14 @@ local options = {
   },
 
   -- Format on save: Java always (google-java-format), Go always
-  -- (goimports + gofumpt, gopls as fallback); web filetypes only when the
+  -- (goimports + gofumpt, gopls as fallback), Rust always (rustfmt,
+  -- rust-analyzer as fallback); web filetypes only when the
   -- project has a prettier config (see require_cwd above), never via LSP so
   -- unconfigured projects are left untouched. <leader>fm still formats on
   -- demand with LSP fallback.
   format_on_save = function(bufnr)
     local ft = vim.bo[bufnr].filetype
-    if ft == "java" or ft == "go" then
+    if ft == "java" or ft == "go" or ft == "rust" then
       return { timeout_ms = 2000, lsp_fallback = true }
     end
     if vim.tbl_contains(prettier_fts, ft) then

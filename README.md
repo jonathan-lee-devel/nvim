@@ -10,8 +10,8 @@
 
 # Windows setup
 
-The config is cross-platform: PATH handling, the delve path and the Go
-test runner all detect Windows (`has("win32")`) and adjust. What follows
+The config is cross-platform: PATH handling, the delve and codelldb paths
+and the Go test runner all detect Windows (`has("win32")`) and adjust. What follows
 is the toolchain the plugins expect to find on the machine.
 
 ## 1. Install the tools
@@ -21,7 +21,7 @@ an elevated PowerShell:
 
 ```powershell
 winget install Neovim.Neovim Git.Git BurntSushi.ripgrep.MSVC
-winget install OpenJS.NodeJS.LTS GoLang.Go Microsoft.OpenJDK.21
+winget install OpenJS.NodeJS.LTS GoLang.Go Microsoft.OpenJDK.21 Rustlang.Rustup
 winget install zig.zig tree-sitter.tree-sitter-cli
 ```
 
@@ -32,6 +32,7 @@ winget install zig.zig tree-sitter.tree-sitter-cli
 | node / npm | vtsls, angular-language-server, eslint-lsp, html/css/json-lsp, prettier |
 | go | gopls, delve and the other Go tools |
 | JDK | google-java-format (nvim-java installs its own JDK for jdtls) |
+| rustup (cargo, rustc, rustfmt, clippy) | rust-analyzer, rustaceanvim's cargo runnables, format on save. The MSVC toolchain needs the Visual Studio C++ Build Tools; rustup's installer offers to set them up |
 | zig (or MSVC Build Tools / MinGW gcc) | nvim-treesitter compiles parsers locally |
 | tree-sitter CLI 0.26.1+ | nvim-treesitter `main` branch |
 
@@ -64,10 +65,19 @@ Inside Neovim:
 :MasonInstall html-lsp css-lsp json-lsp vtsls angular-language-server eslint-lsp
 :MasonInstall prettier stylua google-java-format
 :MasonInstall gopls gofumpt goimports delve golangci-lint golangci-lint-langserver gomodifytags impl gotests iferr
+:MasonInstall codelldb
 ```
 
 nvim-java installs jdtls, the Java debug adapter, the test runner and a JDK
 on its own the first time a Java file is opened.
+
+rust-analyzer comes from rustup rather than Mason so it always matches the
+toolchain that builds the project (`rust-src` lets it index the standard
+library). In a terminal:
+
+```powershell
+rustup component add rust-analyzer rust-src
+```
 
 ## Notes
 
@@ -75,8 +85,12 @@ on its own the first time a Java file is opened.
   of symlinks. The config accounts for this; if you add a plugin that
   spawns a mason binary by absolute path, append `.cmd` on Windows.
 - The Go test/run keymaps (`<leader>gp`, `<leader>gf`, `<leader>gn`,
-  `<leader>gr`) run through `'shell'`. They work with the default
+  `<leader>gr`) and the Rust ones (`<leader>rr`, `<leader>rt`,
+  `<leader>rb`, ...) run through `'shell'`. They work with the default
   `cmd.exe`; if you prefer PowerShell, set `vim.o.shell = "pwsh"` in
   `lua/options.lua`.
+- Rust debugging uses Mason's codelldb. `lua/configs/rustaceanvim.lua`
+  points nvim-dap at `codelldb.exe` and `liblldb.dll` inside the Mason
+  package on Windows, so nothing else is needed.
 - Run `:checkhealth` after setup to confirm the compiler, tree-sitter CLI
   and ripgrep were found.

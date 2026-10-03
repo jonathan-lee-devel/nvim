@@ -187,6 +187,22 @@ if vim.fn.executable(mason_bin .. "/golangci-lint-langserver") == 1 then
 end
 
 -- ---------------------------------------------------------------------------
+-- Rust
+--
+-- rustaceanvim (plugins/init.lua) starts rust-analyzer itself, so it is not
+-- enabled here; it merges vim.lsp.config("*") and this entry into its client
+-- config. rust-analyzer settings live in configs/rustaceanvim.lua.
+-- Install with: rustup component add rust-analyzer rust-src
+--           and :MasonInstall codelldb (debugging)
+-- ---------------------------------------------------------------------------
+vim.lsp.config("rust-analyzer", {
+  -- NvChad's global on_init disables semantic tokens; keep them for Rust so
+  -- lifetimes, traits, macros, mutable bindings, unsafe calls etc. get
+  -- distinct colours.
+  on_init = function() end,
+})
+
+-- ---------------------------------------------------------------------------
 -- Buffer-local keymaps per server
 -- ---------------------------------------------------------------------------
 local function source_action(kind)
@@ -261,6 +277,17 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
       -- Show code lenses (run test / generate / tidy / ...) above declarations;
       -- Neovim keeps them refreshed as the buffer changes.
+      if client:supports_method "textDocument/codeLens" then
+        vim.lsp.codelens.enable(true, { bufnr = args.buf })
+      end
+    end
+
+    if client.name == "rust-analyzer" then
+      -- Everything else Rust-specific is in after/ftplugin/rust.lua.
+      map("<leader>rl", vim.lsp.codelens.run, "Rust run code lens (run/debug/implementations)")
+
+      -- "Run | Debug" lenses above main() and tests, "N implementations" above
+      -- traits; rustaceanvim handles the rust-analyzer.* lens commands.
       if client:supports_method "textDocument/codeLens" then
         vim.lsp.codelens.enable(true, { bufnr = args.buf })
       end
